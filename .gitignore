@@ -1,0 +1,14 @@
+# weights
+/models/*
+#!/models/viva/weights/bb_CGN/checkpoint_600.pth.tar
+
+# local vscode configure
+/.vscode/*
+
+# some local files
+/masters/*
+/__pycache__/*
+/util/__pycache__/*
+
+# test
+/tests/*
