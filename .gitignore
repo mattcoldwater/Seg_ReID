@@ -7,8 +7,9 @@
 
 # some local files
 /masters/*
-/__pycache__/*
-/util/__pycache__/*
+
+*.pyc
+__pycache__/
 
 # test
 /tests/*
