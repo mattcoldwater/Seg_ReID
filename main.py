@@ -421,7 +421,8 @@ if __name__ == '__main__':
     if opt.mode == 'evaluate':
         main = Main(model, loss, Data())
         print('start evaluate')
-        main.load(opt.weight)
+        if opt.weight != -1:
+            main.load(opt.weight)
         main.val()
         main.evaluate()
 
