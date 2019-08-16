@@ -602,50 +602,57 @@ class Segnet(nn.Module):
     def __init__(self):
         super(Segnet, self).__init__()
 
+        feat = 128
         self.num_branches = len(opt.branches)
         resnet = resnet50(pretrained=True)
 
         self.psp = load_PSP(device=opt.device)
 
-        # self.backbone = nn.Sequential(
-        #     resnet.conv1,
-        #     resnet.bn1,
-        #     resnet.relu,
-        #     resnet.maxpool,
-        #     resnet.layer1,
-        #     resnet.layer2,
-        #     resnet.layer3,
-        #     resnet.layer4,
-        #     nn.AdaptiveAvgPool2d((1, 1))
-        # )
+        self.backbone = nn.Sequential(
+            resnet.conv1,
+            resnet.bn1,
+            resnet.relu,
+            resnet.maxpool,
+            resnet.layer1,
+            resnet.layer2,
+            nn.MaxPool2d(kernel_size=(24, 8))
+        )
+
+        feature = nn.Sequential(
+            resnet.layer3,
+            resnet.layer4
+        )
+
+        self.reduction = nn.Sequential(nn.Conv2d(2048, feat, 1), nn.BatchNorm2d(feat), nn.ReLU())
 
         # self.fc = nn.Linear(2048, num_classes)
         # self._initialize_fc(self.fc)
 
         self.tuple_backbone = [0,]* self.num_branches
         for i in range(self.num_branches):
-            self.tuple_backbone[i] = nn.Sequential(
-                resnet.conv1,
-                resnet.bn1,
-                resnet.relu,
-                resnet.maxpool,
-                resnet.layer1,
-                resnet.layer2,
-                resnet.layer3,
-                resnet.layer4,
-                nn.AdaptiveAvgPool2d((1, 1))
-            )
-
+            self.tuple_backbone[i] = nn.Sequential(copy.deepcopy(feature))
         self.tuple_backbone = nn.ModuleList(self.tuple_backbone)
         
-        self.fc2 = nn.Linear(2048*self.num_branches, num_classes)
+        self.fc2 = nn.Linear(feat*self.num_branches, num_classes)
+
         self._initialize_fc(self.fc2)
+        self._init_reduction(self.reduction)
 
     @staticmethod
-    def seg_seg(raw_sum, col_sum):
+    def _init_reduction(reduction):
+        # conv
+        nn.init.kaiming_normal_(reduction[0].weight, mode='fan_in')
+        # nn.init.constant_(reduction[0].bias, 0.)
+
+        # bn
+        nn.init.normal_(reduction[1].weight, mean=1., std=0.02)
+        nn.init.constant_(reduction[1].bias, 0.)
+
+    @staticmethod
+    def seg_seg(bi_img):
+        raw_sum = bi_img.sum(dim=-1)  #384
+        col_sum = bi_img.sum(dim=-2)  #128
         j1, j2, j3, j4 = -1, -1, -1, -1
-        if col_sum.sum() == 0:
-            return False, -1, -1, -1, -1
         r, c = raw_sum.shape[0], col_sum.shape[0]
         for j in range(r):
             if raw_sum[j] > 0:
@@ -663,14 +670,13 @@ class Segnet(nn.Module):
             if col_sum[j] > 0:
                 j4 = j
                 break
-        return True, j1, j2, j3, j4
+        return j1, j2, j3, j4
 
     @staticmethod
-    def expand(img, c, h, w):
-        if not c[0]:
-            seg_img = torch.zeros((3, h, w)).to(opt.device)
-            return seg_img
-        seg_img = img[:, c[1]:c[2]+1, c[3]:c[4]+1]
+    def expand(bi_img, img, c, h, w):
+        img = img * bi_img.float()
+
+        seg_img = img[:, c[0]:c[1]+1, c[2]:c[3]+1]
         seg_img = seg_img.unsqueeze(0)
         seg_img = F.interpolate(seg_img, size=(h, w), mode='bilinear', align_corners=False)
         seg_img = seg_img.squeeze(0)
@@ -678,6 +684,7 @@ class Segnet(nn.Module):
 
     def forward(self, x, labels=None):
         n, h, w = x.shape[0], x.shape[-2], x.shape[-1] # 16, 3, 384, 128
+        no_img = torch.FloatTensor(3, h, w).zero_().to(opt.device)
 
         # global_f = self.backbone(x) # torch.Size([8, 2048, 1, 1])
         # global_f = global_f.view(global_f.size(0), -1)
@@ -685,18 +692,33 @@ class Segnet(nn.Module):
 
         part_f = torch.FloatTensor().to(opt.device)
         pred_segs, pred_cls = self.psp(x)
-        pred_segs = pred_segs.argmax(dim=1)
+        pred_segs = pred_segs.argmax(dim=1) # 16, 384, 128
+        features = [0] * self.num_branches
+        batches = [0] * n
+
         for j in range(self.num_branches):
-            i = opt.branches[j]
-            bi_imgs = (pred_segs == i) # != 0, === 1 # 16, 384, 128
-            raw_sums = bi_imgs.sum(dim=-1) # 128*3 shape[0]  # 16, 384
-            col_sums = bi_imgs.sum(dim=-2) # 128 shape[1] # 16, 128
-            c = [self.seg_seg(raw_sums[_], col_sums[_]) for _ in range(n)] # 16, 4
-            imgs = [self.expand(x[_], c[_], h, w) for _ in range(n)]
+            _ = opt.branches[j]   
+            bi_imgs = (pred_segs == _)    # 16, 384, 128
+            imgs = [0] * n  
+            for i in range(n):
+                bi_img = bi_imgs[i] # 384, 128
+                if bi_img.sum() > 0:
+                    c = self.seg_seg(bi_img)
+                    img = self.expand(bi_img, x[i], c, h, w)
+                    imgs[i] = img
+                else:
+                    imgs[i] = no_img
             imgs = torch.stack(imgs, dim=0)
-            ff = self.tuple_backbone[j](imgs)
-            ff = ff.view(n, ff.shape[1])
-            part_f = torch.cat((part_f, ff), 1)
+            imgs = self.backbone(imgs)
+            imgs = self.tuple_backbone[j](imgs)
+            imgs = self.reduction(imgs)
+            imgs = imgs.squeeze(3).squeeze(2) # 16, 128
+            features[j] = imgs
+
+        for i in range(n):
+            batches[i] = torch.cat([features[j][i] for j in range(self.num_branches)], dim=0) # 20, 128 
+        part_f = torch.stack(batches, dim=0) # 16, 2560
+
         part_p = self.fc2(part_f)
 
         return part_f, part_p

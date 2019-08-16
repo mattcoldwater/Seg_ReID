@@ -2,7 +2,8 @@ import argparse
 
 parser = argparse.ArgumentParser(description='reid')
 
-# !python main.py --mode train --device cuda --weight_path models/viva/weights/Segnet --model_name Segnet --data_path ../market1501 --num_classes 751 --gpu 0 --start_method fork
+# python main.py --mode train --device cpu --weight_path models/market1501/weights/Segnet --model_name Segnet --data_path ../market1501 --num_classes 751 
+# !python main.py --mode train --device cuda --weight_path models/market1501/weights/Segnet --model_name Segnet --data_path ../market1501 --num_classes 751 --gpu 0 --start_method fork --num_workers 16
 # !python main.py --weight_path models/market1501/weights/Resnet --model_name Resnet --mode train --num_workers 16 --device cuda --data_path ../market1501 --num_classes 751 --gpu 0 --start_method fork
 # python main.py --weight_path models/market1501/weights/Resnet --model_name Resnet --mode train --num_workers 16 --device cpu --data_path ../market1501/Market1501 --num_classes 751 --debug True
 
@@ -16,13 +17,13 @@ parser.add_argument("--device", default='cuda', help = 'cuda or cuda:0 or cpu')
 parser.add_argument('--debug', default=False, type=bool, help='debug mode, smaller dataset')
 parser.add_argument('--gpu', default='1', help='the gpu you use')
 parser.add_argument('--start_method', default='spawn', help='mutiprocessing start method')
-parser.add_argument('--branches', default=[5,], help='seg branches') #2, 5, 9, 13, 14, 15, 16, 17
-""" 
+parser.add_argument('--branches', default=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], type=list, help='seg branches')
+"""  [[1,2,4,13], [3, 11, 14, 15], [5, 6, 7, 10], [8, 9, 12, 16, 17, 18, 19]] 
 'Background',  'Hat',          'Hair',      'Glove',     
 'Sunglasses',  'UpperClothes', 'Dress',     'Coat',      
-'Socks', 'Pants',        'Jumpsuits', 'Scarf',     'Skirt',
-'Face',         'Left-arm',  'Right-arm', 'Left-leg',
-'Right-leg',    'Left-shoe', 'Right-shoe',
+'Socks',       'Pants',        'Jumpsuits', 'Scarf',     
+'Skirt',       'Face',         'Left-arm',  'Right-arm', 
+'Left-leg',    'Right-leg',    'Left-shoe', 'Right-shoe',
 """
 ## data
 parser.add_argument("--seed", default=100, type=int, help='random seed for data preparation')
