@@ -602,8 +602,8 @@ class Segnet(nn.Module):
     def __init__(self):
         super(Segnet, self).__init__()
 
-        feat = 128
         self.num_branches = len(opt.branches)
+        feat = opt.feat
         resnet = resnet50(pretrained=True)
 
         self.psp = load_PSP(device=opt.device)
@@ -614,8 +614,7 @@ class Segnet(nn.Module):
             resnet.relu,
             resnet.maxpool,
             resnet.layer1,
-            resnet.layer2,
-            nn.MaxPool2d(kernel_size=(24, 8))
+            resnet.layer2
         )
 
         feature = nn.Sequential(
@@ -623,7 +622,7 @@ class Segnet(nn.Module):
             resnet.layer4
         )
 
-        self.reduction = nn.Sequential(nn.Conv2d(2048, feat, 1), nn.BatchNorm2d(feat), nn.ReLU())
+        self.reduction = nn.Sequential(nn.Conv2d(2048, feat, 1), nn.BatchNorm2d(feat), nn.ReLU(), nn.AdaptiveAvgPool2d((1, 1)))
 
         # self.fc = nn.Linear(2048, num_classes)
         # self._initialize_fc(self.fc)
@@ -683,7 +682,8 @@ class Segnet(nn.Module):
         return seg_img
 
     def forward(self, x, labels=None):
-        n, h, w = x.shape[0], x.shape[-2], x.shape[-1] # 16, 3, 384, 128
+        n = x.shape[0] # 16, 3, 384, 128
+        h, w = 128, 128
         no_img = torch.FloatTensor(3, h, w).zero_().to(opt.device)
 
         # global_f = self.backbone(x) # torch.Size([8, 2048, 1, 1])
@@ -697,8 +697,11 @@ class Segnet(nn.Module):
         batches = [0] * n
 
         for j in range(self.num_branches):
-            _ = opt.branches[j]   
-            bi_imgs = (pred_segs == _)    # 16, 384, 128
+            _b = opt.branches[j]  
+            bi_imgs = (pred_segs == _b[0])     # 16, 384, 128
+            if len(_b) > 0:
+                for _ in _b: 
+                    bi_imgs = bi_imgs | (pred_segs == _)    
             imgs = [0] * n  
             for i in range(n):
                 bi_img = bi_imgs[i] # 384, 128

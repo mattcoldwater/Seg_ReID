@@ -46,7 +46,7 @@ def load_PSP(device='cpu', backend='densenet'):
         'resnet152': lambda: PSPNet(sizes=(1, 2, 3, 6), psp_size=2048, deep_features_size=1024, backend='resnet152')
     }
 
-    filename = './PSP/{}/PSPNet_last'.format(backend)
+    filename = '../{}/PSPNet_last'.format(backend)
 
     net = models[backend]()
     net = WrappedModel(net)
