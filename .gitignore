@@ -9,7 +9,6 @@
 /masters/*
 
 *.pyc
-__pycache__/
 
 # test
 /tests/*
