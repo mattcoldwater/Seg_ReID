@@ -14,6 +14,7 @@ from torch.nn import Parameter
 import math
 
 from PSP.load_psp import load_PSP
+from util.utility import Show_Seg
 
 # num_classes = 751  # change this depend on your dataset
 num_classes = opt.num_classes
@@ -603,6 +604,7 @@ class Segnet(nn.Module):
         super(Segnet, self).__init__()
 
         self.num_branches = len(opt.branches)
+        self.draw = Show_Seg()
         feat = opt.feat
         resnet = resnet50(pretrained=True)
 
@@ -622,20 +624,20 @@ class Segnet(nn.Module):
             resnet.layer4
         )
 
-        self.reduction = nn.Sequential(nn.Conv2d(2048, feat, 1), nn.BatchNorm2d(feat), nn.ReLU(), nn.AdaptiveAvgPool2d((1, 1)))
-
-        # self.fc = nn.Linear(2048, num_classes)
-        # self._initialize_fc(self.fc)
+        self.reduction = nn.Sequential(nn.Conv2d(2048, feat, 1), nn.BatchNorm2d(feat), nn.ReLU(inplace=True), nn.AdaptiveAvgPool2d((1, 1)))
+        self._init_reduction(self.reduction)
 
         self.tuple_backbone = [0,]* self.num_branches
         for i in range(self.num_branches):
-            self.tuple_backbone[i] = nn.Sequential(copy.deepcopy(feature))
+            self.tuple_backbone[i] = copy.deepcopy(feature)
         self.tuple_backbone = nn.ModuleList(self.tuple_backbone)
         
         self.fc2 = nn.Linear(feat*self.num_branches, num_classes)
-
         self._initialize_fc(self.fc2)
-        self._init_reduction(self.reduction)
+
+        # self.glo_f = nn.Sequential(copy.deepcopy(feature), nn.AdaptiveAvgPool2d((1, 1)))
+        # self.fc = nn.Linear(2048, num_classes)
+        # self._initialize_fc(self.fc)
 
     @staticmethod
     def _init_reduction(reduction):
@@ -682,24 +684,30 @@ class Segnet(nn.Module):
         return seg_img
 
     def forward(self, x, labels=None):
-        n = x.shape[0] # 16, 3, 384, 128
-        h, w = 128, 128
+        n = x.shape[0] # 16, 3, 256, 256
+        h, w = 384, 128
         no_img = torch.FloatTensor(3, h, w).zero_().to(opt.device)
 
         # global_f = self.backbone(x) # torch.Size([8, 2048, 1, 1])
+        # global_f = self.glo_f(global_f)
         # global_f = global_f.view(global_f.size(0), -1)
         # global_p = self.fc(global_f)
 
         part_f = torch.FloatTensor().to(opt.device)
-        pred_segs, pred_cls = self.psp(x)
-        pred_segs = pred_segs.argmax(dim=1) # 16, 384, 128
+        self.psp.eval()
+        with torch.no_grad():
+            pred_segs, pred_cls = self.psp(x)
+            pred_segs = pred_segs.argmax(dim=1) # 16, 256, 256
         features = [0] * self.num_branches
-        batches = [0] * n
+        part_f = [0] * n
+
+        self.draw.show_pred_seg('./tmp', pred_segs[0], '')
+        self.draw.show('./tmp', x[0], '')
 
         for j in range(self.num_branches):
             _b = opt.branches[j]  
-            bi_imgs = (pred_segs == _b[0])     # 16, 384, 128
-            if len(_b) > 0:
+            bi_imgs = (pred_segs == _b[0])     # 16, 256, 256
+            if len(_b) > 1:
                 for _ in _b: 
                     bi_imgs = bi_imgs | (pred_segs == _)    
             imgs = [0] * n  
@@ -712,18 +720,25 @@ class Segnet(nn.Module):
                 else:
                     imgs[i] = no_img
             imgs = torch.stack(imgs, dim=0)
-            imgs = self.backbone(imgs)
-            imgs = self.tuple_backbone[j](imgs)
-            imgs = self.reduction(imgs)
-            imgs = imgs.squeeze(3).squeeze(2) # 16, 128
-            features[j] = imgs
+            
+            feature = self.backbone(imgs) #
+            feature = self.tuple_backbone[j](feature)
+            feature = self.reduction(feature)
+            feature = feature.squeeze(3).squeeze(2) # 16, 128
+            features[j] = feature
+
+            self.draw.show('./tmp', imgs[0], j)
+
+        del imgs, pred_segs, x
 
         for i in range(n):
-            batches[i] = torch.cat([features[j][i] for j in range(self.num_branches)], dim=0) # 20, 128 
-        part_f = torch.stack(batches, dim=0) # 16, 2560
+            part_f[i] = torch.cat([features[j][i] for j in range(self.num_branches)], dim=0) # 20, 128 
+
+        part_f = torch.stack(part_f, dim=0) # 16, 2560
 
         part_p = self.fc2(part_f)
 
+        # return global_f, part_f, global_p, part_p
         return part_f, part_p
 
     def _initialize_fc(self, m):

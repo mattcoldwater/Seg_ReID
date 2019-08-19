@@ -26,15 +26,15 @@ def stratify_sample(labels, seed, val_size):
 class Data():
     def __init__(self):
         train_transform = transforms.Compose([
-            transforms.Resize((384, 128), interpolation=3),
-            transforms.RandomHorizontalFlip(),
+            transforms.Resize((opt.h, opt.w), interpolation=3),
+            # transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-            RandomErasing(probability=0.5, mean=[0.0, 0.0, 0.0])
+            # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            # RandomErasing(probability=0.5, mean=[0.0, 0.0, 0.0])
         ])
 
         test_transform = transforms.Compose([
-            transforms.Resize((384, 128), interpolation=3),
+            transforms.Resize((opt.h, opt.w), interpolation=3),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])

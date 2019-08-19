@@ -48,15 +48,16 @@ def load_PSP(device='cpu', backend='densenet'):
 
     filename = '../{}/PSPNet_last'.format(backend)
 
-    net = models[backend]()
-    net = WrappedModel(net)
-    # net = nn.DataParallel(net)
-    checkpoint = torch.load(filename, map_location=torch.device(device))
-    net.load_state_dict(checkpoint)
-    net = net.to(device)
-    logging.info("loading from {}".format(filename))
+    with torch.no_grad():
+        net = models[backend]()
+        net = WrappedModel(net)
+        # net = nn.DataParallel(net)
+        checkpoint = torch.load(filename, map_location=torch.device(device))
+        net.load_state_dict(checkpoint)
+        net = net.to(device)
+        logging.info("loading from {}".format(filename))
 
-    net.eval()
+        net.eval()
 
     return net
 

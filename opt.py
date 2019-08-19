@@ -5,7 +5,7 @@ parser = argparse.ArgumentParser(description='reid')
 # python main.py --mode train --device cpu --weight_path models/market1501/weights/Segnet --model_name Segnet --data_path ../market1501 --num_classes 751 
 # !python main.py --mode train --device cuda --weight_path models/market1501/weights/Segnet --model_name Segnet --data_path ../market1501 --num_classes 751 --gpu 0 --start_method fork --num_workers 16
 # !python main.py --weight_path models/market1501/weights/Resnet --model_name Resnet --mode train --num_workers 16 --device cuda --data_path ../market1501 --num_classes 751 --gpu 0 --start_method fork
-# python main.py --weight_path models/market1501/weights/Resnet --model_name Resnet --mode train --num_workers 16 --device cpu --data_path ../market1501/Market1501 --num_classes 751 --debug True
+# python main.py --device cuda --weight_path models/market1501/weights/Segnet --model_name Segnet --data_path ../market1501/Market1501 --num_classes 751 --batchtest 8 --batchquery 8 --h 256 --w 256 --num_workers 8
 
 ## global
 parser.add_argument('--weight_path', default="models/viva/weights/bb_CGN", help='pytorch model checkpoint path')
@@ -18,7 +18,7 @@ parser.add_argument('--debug', default=False, type=bool, help='debug mode, small
 parser.add_argument('--gpu', default='1', help='the gpu you use')
 parser.add_argument('--start_method', default='spawn', help='mutiprocessing start method')
 parser.add_argument('--feat', default=512, type=int, help='number of features')
-parser.add_argument('--branches', default=[[1,2,4,13], [3, 11, 14, 15], [5, 6, 7, 10], [9, 12, 16, 17], [8, 18, 19]], type=list, help='seg branches')
+parser.add_argument('--branches', default=[[0,], [1, 2, 4, 13, 3, 11, 5, 6, 7, 10, 14, 15], [9, 12, 16, 17, 8, 18, 19]], type=list, help='seg branches')
 """  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
 'Background',  'Hat',          'Hair',      'Glove',     
 'Sunglasses',  'UpperClothes', 'Dress',     'Coat',      
@@ -30,6 +30,8 @@ parser.add_argument('--branches', default=[[1,2,4,13], [3, 11, 14, 15], [5, 6, 7
 parser.add_argument("--seed", default=100, type=int, help='random seed for data preparation')
 parser.add_argument("--trans", default=1, type=int, help='transparency: 0 mask, 1 bounding box')
 parser.add_argument('--data_path', default="../viva_dataset/viva_dataset", help='data path, Eg: ../market1501/Market1501')   
+parser.add_argument("--h", default=384, type=int, help='height')
+parser.add_argument("--w", default=128, type=int, help='width')
 
 ## training 
 parser.add_argument("--num_classes", default=204, type=int, help='number of classes for training, market1501: 751, vivalab 204')
