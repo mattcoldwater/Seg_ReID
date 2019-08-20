@@ -108,8 +108,8 @@ class Market1501(dataset.Dataset):
 
     def __getitem__(self, index):
         path = self.imgs[index]
-        # path_npz = path.with_suffix('.npz')
-        # seg = np.load(path_npz)['data']
+        path_npz = path.with_suffix('.npz')
+        seg = np.load(path_npz)['data']
         seg = torch.from_numpy(seg)
 
         target = self._id2label[self.id(path)]
@@ -119,7 +119,7 @@ class Market1501(dataset.Dataset):
         if self.transform is not None:
             img = self.transform(img)
 
-        return img, target#, seg
+        return img, target, seg
 
     def __len__(self):
         return len(self.imgs)

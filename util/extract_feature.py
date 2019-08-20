@@ -5,13 +5,14 @@ def extract_feature(model, loader):
     torch.cuda.empty_cache()
     features = torch.FloatTensor()
 
-    for (inputs, labels) in loader:
+    for (inputs, labels, segs) in loader:
 
         if opt.model_name == 'Segnet':
             ff = torch.FloatTensor(inputs.size(0), opt.feat*len(opt.branches)).zero_()
         else:
             ff = torch.FloatTensor(inputs.size(0), 2048).zero_()
         labels = labels.to(opt.device)
+        segs = segs.to(opt.device)
         for i in range(2):
             if i == 1:
                 inputs = inputs.index_select(3, torch.arange(inputs.size(3) - 1, -1, -1).long())
@@ -33,8 +34,9 @@ def extract_feature_SN(model, loader):
     else:
         features = torch.FloatTensor().to(opt.device)
 
-    for (inputs, labels) in loader:
+    for (inputs, labels, segs) in loader:
         inputs = inputs.to(opt.device)
+        segs = segs.to(opt.device)
         outputs = model.extract_feature(inputs)
         if opt.model_name == 'FPN':
             for i in range(5):
