@@ -109,7 +109,7 @@ class Market1501(dataset.Dataset):
     def __getitem__(self, index):
         path = self.imgs[index]
 
-        path_npz = path.replace('.jpg', '.npz')
+        path_npz = path[:-3] + 'npz'
         seg = np.load(path_npz)['data']
         seg = torch.from_numpy(seg)
 
