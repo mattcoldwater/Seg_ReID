@@ -701,8 +701,12 @@ class Segnet(nn.Module):
         features = [0] * self.num_branches
         part_f = [0] * n
 
-        self.draw.show_pred_seg('./tmp', pred_segs[0], '')
-        self.draw.show('./tmp', x[0], '')
+        # tmp = pred_segs[0].cpu().numpy()
+        # np.savez_compressed("./tmp/tmp.npz", data=tmp)
+        # tmp1 = np.load("./tmp/tmp.npz")['data']
+
+        # self.draw.show_pred_seg('./tmp', pred_segs[0], '')
+        # self.draw.show('./tmp', x[0], '')
 
         for j in range(self.num_branches):
             _b = opt.branches[j]  
@@ -727,7 +731,7 @@ class Segnet(nn.Module):
             feature = feature.squeeze(3).squeeze(2) # 16, 128
             features[j] = feature
 
-            self.draw.show('./tmp', imgs[0], j)
+            # self.draw.show('./tmp', imgs[0], j)
 
         del imgs, pred_segs, x
 
