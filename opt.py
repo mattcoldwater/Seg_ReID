@@ -2,13 +2,13 @@ import argparse
 
 parser = argparse.ArgumentParser(description='reid')
 
-# python main.py --mode train --device cpu --weight_path models/market1501/weights/Segnet --model_name Segnet --data_path ../market1501 --num_classes 751 
-# !python main.py --mode train --device cuda --weight_path models/market1501/weights/Segnet --model_name Segnet --data_path ../market1501 --num_classes 751 --gpu 0 --start_method fork --num_workers 16
-# !python main.py --weight_path models/market1501/weights/Resnet --model_name Resnet --mode train --num_workers 16 --device cuda --data_path ../market1501 --num_classes 751 --gpu 0 --start_method fork
-
-## Segnet
+## Segnet viva2
 # python main.py --device cuda --weight_path models/market1501/weights/Segnet --model_name Segnet --data_path ../market1501/Market1501 --num_classes 751 --batchtest 8 --batchquery 8 --h 256 --w 256 --num_workers 8
 # python main.py --device cuda --weight_path models/market1501/weights/Segnet --model_name Segnet --data_path ../market1501/Market1501 --num_classes 751 --batchtest 8 --batchquery 8 --h 256 --w 256 --num_workers 8 --mode evaluate 
+
+## Segnet viva1
+# python main.py --device cuda --weight_path models/market1501/weights/Segnet --model_name Segnet --data_path ../datasets/Market1501 --num_classes 751 --batchtest 8 --batchquery 8 --h 256 --w 256 --num_workers 8
+# python main.py --device cuda --weight_path models/market1501/weights/Segnet --model_name Segnet --data_path ../datasets/Market1501 --num_classes 751 --batchtest 8 --batchquery 8 --h 256 --w 256 --num_workers 8 --mode evaluate 
 
 ## global
 parser.add_argument('--weight_path', default="models/viva/weights/bb_CGN", help='pytorch model checkpoint path')

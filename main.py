@@ -64,7 +64,6 @@ class Main():
 
     def train(self):
 
-        self.scheduler.step()
         self.model.train()
 
         for batch, (inputs, labels, cameras) in enumerate(self.train_loader):
@@ -75,6 +74,8 @@ class Main():
             loss = self.loss(outputs, labels)
             loss.backward()
             self.optimizer.step()
+        
+        self.scheduler.step()
 
     def val(self):
 
