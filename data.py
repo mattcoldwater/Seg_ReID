@@ -167,9 +167,13 @@ class Market1501(dataset.Dataset):
     def list_pictures(directory, ext='jpg|jpeg|bmp|png'):
         assert os.path.isdir(directory), 'dataset is not exists!{}'.format(directory)
 
-        return sorted([os.path.join(root, f)
-                       for root, _, files in os.walk(directory) for f in files
-                       if re.match(r'([\w]+\.(?:' + ext + '))', f)])
+        # return sorted([os.path.join(root, f)
+        #                for root, _, files in os.walk(directory) for f in files
+        #                if re.match(r'([\w]+\.(?:' + ext + '))', f)])
+        
+        paths = Path(directory).glob('**/*.jpg')
+        paths = [path.__str__() for path in paths]
+        return paths
 
 class Vivalab(dataset.Dataset):
     def __init__(self, transform, imgs, dtype=''):
