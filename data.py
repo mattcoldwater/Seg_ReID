@@ -164,7 +164,7 @@ class Market1501(dataset.Dataset):
         return [self.camera(path) for path in self.imgs]
 
     @staticmethod
-    def list_pictures(directory, ext='jpg|jpeg|bmp|png|ppm|npy'):
+    def list_pictures(directory, ext='jpg|jpeg|bmp|png'):
         assert os.path.isdir(directory), 'dataset is not exists!{}'.format(directory)
 
         return sorted([os.path.join(root, f)
