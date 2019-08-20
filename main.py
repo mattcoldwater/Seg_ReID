@@ -71,7 +71,7 @@ class Main():
             labels = labels.to(opt.device)
             segs = segs.to(opt.device)
             self.optimizer.zero_grad()
-            outputs = self.model(inputs, labels)
+            outputs = self.model(inputs, segs, labels)
             loss = self.loss(outputs, labels)
             loss.backward()
             self.optimizer.step()
@@ -90,7 +90,7 @@ class Main():
                 labels = labels.to(opt.device)
                 segs = segs.to(opt.device)
                 self.optimizer.zero_grad()
-                outputs = self.model(inputs, labels)
+                outputs = self.model(inputs, segs, labels)
                 loss = self.loss(outputs, labels, False)
                 losses.append(loss.cpu().numpy())
         

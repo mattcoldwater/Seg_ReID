@@ -13,7 +13,7 @@ import numpy as np
 from torch.nn import Parameter
 import math
 
-from PSP.load_psp import load_PSP
+# from PSP.load_psp import load_PSP
 from util.utility import Show_Seg
 
 # num_classes = 751  # change this depend on your dataset
@@ -608,8 +608,6 @@ class Segnet(nn.Module):
         feat = opt.feat
         resnet = resnet50(pretrained=True)
 
-        self.psp = load_PSP(device=opt.device)
-
         self.backbone = nn.Sequential(
             resnet.conv1,
             resnet.bn1,
@@ -683,7 +681,7 @@ class Segnet(nn.Module):
         seg_img = seg_img.squeeze(0)
         return seg_img
 
-    def forward(self, x, labels=None):
+    def forward(self, x, pred_segs=None, labels=None):
         n = x.shape[0] # 16, 3, 256, 256
         h, w = 384, 128
         no_img = torch.FloatTensor(3, h, w).zero_().to(opt.device)
@@ -694,10 +692,6 @@ class Segnet(nn.Module):
         # global_p = self.fc(global_f)
 
         part_f = torch.FloatTensor().to(opt.device)
-        self.psp.eval()
-        with torch.no_grad():
-            pred_segs, pred_cls = self.psp(x)
-            pred_segs = pred_segs.argmax(dim=1) # 16, 256, 256
         features = [0] * self.num_branches
         part_f = [0] * n
 

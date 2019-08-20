@@ -7,8 +7,8 @@ parser = argparse.ArgumentParser(description='reid')
 # python main.py --device cuda --weight_path models/market1501/weights/Segnet --model_name Segnet --data_path ../market1501/Market1501 --num_classes 751 --batchtest 8 --batchquery 8 --h 256 --w 256 --num_workers 8 --mode evaluate 
 
 ## Segnet viva1
-# python main.py --device cuda --weight_path models/market1501/weights/Segnet --model_name Segnet --data_path ../datasets/Market1501 --num_classes 751 --batchtest 8 --batchquery 8 --h 256 --w 256 --num_workers 8
-# python main.py --device cuda --weight_path models/market1501/weights/Segnet --model_name Segnet --data_path ../datasets/Market1501 --num_classes 751 --batchtest 8 --batchquery 8 --h 256 --w 256 --num_workers 8 --mode evaluate 
+# python main.py --device cuda --weight_path models/market1501/weights/Segnet --model_name Segnet --data_path ../datasets/Market1501 --num_classes 751 --batchtest 8 --batchquery 8 --h 256 --w 256 --num_workers 6 > models/market1501/logs/Segnet.txt
+# python main.py --device cuda --weight_path models/market1501/weights/Segnet --model_name Segnet --data_path ../datasets/Market1501 --num_classes 751 --batchtest 8 --batchquery 8 --h 256 --w 256 --num_workers 6 --mode evaluate 
 
 ## global
 parser.add_argument('--weight_path', default="models/viva/weights/bb_CGN", help='pytorch model checkpoint path')
@@ -21,7 +21,7 @@ parser.add_argument('--debug', default=False, type=bool, help='debug mode, small
 parser.add_argument('--gpu', default='1', help='the gpu you use')
 parser.add_argument('--start_method', default='spawn', help='mutiprocessing start method')
 parser.add_argument('--feat', default=512, type=int, help='number of features')
-parser.add_argument('--branches', default=[[1, 2, 4, 13, 3, 11, 5, 6, 7, 10, 14, 15], [9, 12, 16, 17, 8, 18, 19]], type=list, help='seg branches')
+parser.add_argument('--branches', default=[[0,], [1, 2, 4, 13, 3, 11, 5, 6, 7, 10, 14, 15], [9, 12, 16, 17, 8, 18, 19]], type=list, help='seg branches')
 """  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
 [0,], [1, 2, 4, 13, 3, 11, 5, 6, 7, 10, 14, 15], [9, 12, 16, 17, 8, 18, 19]
 'Background',  'Hat',          'Hair',      'Glove',     
