@@ -66,7 +66,7 @@ class Main():
 
         self.model.train()
 
-        for batch, (inputs, labels, cameras) in enumerate(self.train_loader):
+        for batch, (inputs, labels) in enumerate(self.train_loader):
             inputs = inputs.to(opt.device)
             labels = labels.to(opt.device)
             self.optimizer.zero_grad()
@@ -84,7 +84,7 @@ class Main():
 
         losses = []
         with torch.no_grad():
-            for batch, (inputs, labels, cameras) in enumerate(self.val_loader):
+            for batch, (inputs, labels) in enumerate(self.val_loader):
                 inputs = inputs.to(opt.device)
                 labels = labels.to(opt.device)
                 self.optimizer.zero_grad()

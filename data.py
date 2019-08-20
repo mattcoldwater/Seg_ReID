@@ -108,15 +108,18 @@ class Market1501(dataset.Dataset):
 
     def __getitem__(self, index):
         path = self.imgs[index]
+        # path_npz = path.with_suffix('.npz')
+        # seg = np.load(path_npz)['data']
+        seg = torch.from_numpy(seg)
+
         target = self._id2label[self.id(path)]
-        cam = self.camera(path)
+        # cam = self.camera(path)
 
         img = self.loader(path)
         if self.transform is not None:
             img = self.transform(img)
-        # img = torch.stack([img[0], img[0], img[0]])
 
-        return img, target, cam
+        return img, target#, seg
 
     def __len__(self):
         return len(self.imgs)
@@ -136,7 +139,7 @@ class Market1501(dataset.Dataset):
         :return: camera id
         """
         return int(file_path.split('/')[-1].split('_')[1][1])
-
+    
     @property
     def ids(self):
         """

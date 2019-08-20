@@ -5,7 +5,7 @@ def extract_feature(model, loader):
     torch.cuda.empty_cache()
     features = torch.FloatTensor()
 
-    for (inputs, labels, cameras) in loader:
+    for (inputs, labels) in loader:
 
         if opt.model_name == 'Segnet':
             ff = torch.FloatTensor(inputs.size(0), opt.feat*len(opt.branches)).zero_()
@@ -33,7 +33,7 @@ def extract_feature_SN(model, loader):
     else:
         features = torch.FloatTensor().to(opt.device)
 
-    for (inputs, labels, cameras) in loader:
+    for (inputs, labels) in loader:
         inputs = inputs.to(opt.device)
         outputs = model.extract_feature(inputs)
         if opt.model_name == 'FPN':
