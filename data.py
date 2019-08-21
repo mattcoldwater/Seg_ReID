@@ -27,8 +27,8 @@ def stratify_sample(labels, seed, val_size):
 class Data():
     def __init__(self):
         train_transform = transforms.Compose([
-            # transforms.Resize((opt.h, opt.w), interpolation=3),
-            # transforms.RandomHorizontalFlip(),
+            transforms.Resize((opt.h, opt.w), interpolation=3),
+            transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
             RandomErasing(probability=0.5, mean=[0.0, 0.0, 0.0])
@@ -50,10 +50,10 @@ class Data():
             self.queryset = Vivalab(test_transform, query_imgs, 'query')
             self.valset = Vivalab(test_transform, val_imgs, 'val')
         else:
-            self.trainset = Market1501(train_transform, 'train', opt.data_path)
-            self.testset = Market1501(test_transform, 'test', opt.data_path)
-            self.queryset = Market1501(test_transform, 'query', opt.data_path)
-            self.valset = Market1501(test_transform, 'val', opt.data_path)
+            self.trainset = Market1501('train', opt.data_path)
+            self.testset = Market1501('test', opt.data_path)
+            self.queryset = Market1501('query', opt.data_path)
+            self.valset = Market1501('val', opt.data_path)
 
         pin_memory = opt.device != 'cpu'
         self.train_loader = dataloader.DataLoader(self.trainset,
@@ -75,14 +75,27 @@ class Data():
             self.query_image = test_transform(default_loader(opt.query_image))
 
 class Market1501(dataset.Dataset):
-    def __init__(self, transform, dtype, data_path):
+    def __init__(self, dtype, data_path):
 
-        self.transform_resize = transforms.Resize((opt.h, opt.w), interpolation=3)
+        self.dtype = dtype
+        if dtype == 'train':
+            self.transform_resize = transforms.Resize((opt.h, opt.w), interpolation=3)
+            self.transform =  transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                RandomErasing(probability=0.5, mean=[0.0, 0.0, 0.0])
+            ])
+        else:
+            self.transform = transforms.Compose([
+                transforms.Resize((opt.h, opt.w), interpolation=3),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+            ])
         self.MRandom = random.Random(opt.seed)
         self.to_tensor = transforms.ToTensor()
         self.to_img = transforms.ToPILImage()
 
-        self.transform = transform
+        # self.transform = transform
         self.loader = default_loader
         self.data_path = data_path
 
@@ -111,25 +124,23 @@ class Market1501(dataset.Dataset):
 
     def __getitem__(self, index):
         path = self.imgs[index]
-
         target = self._id2label[self.id(path)]
-        
         # cam = self.camera(path)
-
         img = self.loader(path)
-
-        hori_flip = self.MRandom.random() < 0.5
-
-        img = self.transform_resize(img)
-        if hori_flip:
-            img = F.hflip(img)
-        img = self.transform(img)
-
         path_npz = path[:-3] + 'npz'
         seg = np.load(path_npz)['data']
-        if hori_flip:
-            seg = np.fliplr(seg)
-            seg = seg.copy()
+
+        if self.dtype == 'train':
+            hori_flip = self.MRandom.random() < 0.5
+
+            img = self.transform_resize(img)
+            
+            if hori_flip:
+                img = F.hflip(img)
+                seg = np.fliplr(seg)
+                seg = seg.copy()
+
+        img = self.transform(img)
         seg = torch.from_numpy(seg)
 
         return img, target, seg

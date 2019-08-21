@@ -415,11 +415,11 @@ if __name__ == '__main__':
         for epoch in range(init_epoch + 1, opt.epoch + 1):
             print('\nepoch', epoch)
             main.train()
-            if epoch % 50 == 0 or epoch==1:
+            if epoch % 100 == 0 or epoch in [1, 10, 30, 50]:
                 print('\nstart evaluate')
+                main.save(epoch, opt.weight_path+'/checkpoint_{}.pth.tar'.format(epoch))
                 main.val()
                 main.evaluate()
-                main.save(epoch, opt.weight_path+'/checkpoint_{}.pth.tar'.format(epoch))
 
     if opt.mode == 'evaluate':
         main = Main(model, loss, Data())
