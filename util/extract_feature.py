@@ -11,7 +11,7 @@ def extract_feature(model, loader):
         for i in range(2):
             if i == 1:
                 inputs = inputs.index_select(3, torch.arange(inputs.size(3) - 1, -1, -1).long())
-                segs = segs.index_select(3, torch.arange(segs.size(3) - 1, -1, -1).long())
+                segs = segs.index_select(2, torch.arange(segs.size(2) - 1, -1, -1).long())
             input_img = inputs.to(opt.device)
             segs_seg = segs.to(opt.device)
             # labels = labels.to(opt.device)

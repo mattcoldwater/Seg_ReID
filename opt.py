@@ -7,8 +7,8 @@ parser = argparse.ArgumentParser(description='reid')
 # python main.py --device cuda --weight_path models/market1501/weights/Segnet --model_name Segnet --data_path ../market1501/Market1501 --num_classes 751 --batchtest 8 --batchquery 8 --h 256 --w 256 --num_workers 8 --mode evaluate 
 
 ## Segnet viva1
-# python main.py --device cuda --weight_path models/market1501/weights/Segnet --model_name Segnet --data_path ../datasets/Market1501 --num_classes 751 --batchtest 8 --batchquery 8 --h 256 --w 256 --num_workers 6 > models/market1501/logs/Segnet.txt
-# python main.py --device cuda --weight_path models/market1501/weights/Segnet --model_name Segnet --data_path ../datasets/Market1501 --num_classes 751 --batchtest 8 --batchquery 8 --h 256 --w 256 --num_workers 6 --mode evaluate 
+# python main.py --device cuda --weight_path models/market1501/weights/Segnet --model_name Segnet --data_path ../datasets/Market1501 --num_classes 751 --batchtest 8 --batchquery 8 --h 256 --w 256 --epoch 1000 --num_workers 4 --mode train > models/market1501/logs/Segnet.txt
+# python main.py --device cuda --weight_path models/market1501/weights/Segnet --model_name Segnet --data_path ../datasets/Market1501 --num_classes 751 --batchtest 8 --batchquery 8 --h 256 --w 256 --num_workers 4 --mode evaluate 
 
 ## global
 parser.add_argument('--weight_path', default="models/viva/weights/bb_CGN", help='pytorch model checkpoint path')
