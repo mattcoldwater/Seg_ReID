@@ -7,20 +7,18 @@ def extract_feature(model, loader):
 
     for (inputs, labels, segs) in loader:
 
-        if opt.model_name == 'Segnet':
-            ff = torch.FloatTensor(inputs.size(0), opt.feat*len(opt.branches)).zero_()
-        else:
-            ff = torch.FloatTensor(inputs.size(0), 2048).zero_()
-        # for i in range(2):
-        #     if i == 1:
-        #         inputs = inputs.index_select(3, torch.arange(inputs.size(3) - 1, -1, -1).long())
-        input_img = inputs.to(opt.device)
-        segs = segs.to(opt.device)
-        # labels = labels.to(opt.device)
-        outputs = model(input_img, segs)
+        ff = torch.FloatTensor(inputs.size(0), opt.feat*len(opt.branches)).zero_()
+        for i in range(2):
+            if i == 1:
+                inputs = inputs.index_select(3, torch.arange(inputs.size(3) - 1, -1, -1).long())
+                segs = segs.index_select(3, torch.arange(segs.size(3) - 1, -1, -1).long())
+            input_img = inputs.to(opt.device)
+            segs_seg = segs.to(opt.device)
+            # labels = labels.to(opt.device)
+            outputs = model(input_img, segs_seg)
 
-        ff = outputs[0].data.cpu()
-        # ff = ff + f
+            f = outputs[0].data.cpu()
+            ff = ff + f
 
         fnorm = torch.norm(ff, p=2, dim=1, keepdim=True)
         ff = ff.div(fnorm.expand_as(ff))

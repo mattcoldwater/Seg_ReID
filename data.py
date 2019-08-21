@@ -13,6 +13,7 @@ import random
 import json
 from pathlib import Path
 import torch
+from torchvision.transforms import functional as F
 
 def stratify_sample(labels, seed, val_size):
     X = np.arange(len(labels))
@@ -26,8 +27,8 @@ def stratify_sample(labels, seed, val_size):
 class Data():
     def __init__(self):
         train_transform = transforms.Compose([
-            transforms.Resize((opt.h, opt.w), interpolation=3),
-            transforms.RandomHorizontalFlip(),
+            # transforms.Resize((opt.h, opt.w), interpolation=3),
+            # transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
             RandomErasing(probability=0.5, mean=[0.0, 0.0, 0.0])
@@ -76,6 +77,8 @@ class Data():
 class Market1501(dataset.Dataset):
     def __init__(self, transform, dtype, data_path):
 
+        self.transform_resize = transforms.Resize((opt.h, opt.w), interpolation=3)
+        self.MRandom = random.Random(opt.seed)
         self.to_tensor = transforms.ToTensor()
         self.to_img = transforms.ToPILImage()
 
@@ -109,17 +112,25 @@ class Market1501(dataset.Dataset):
     def __getitem__(self, index):
         path = self.imgs[index]
 
-        path_npz = path[:-3] + 'npz'
-        seg = np.load(path_npz)['data']
-        seg = torch.from_numpy(seg)
-
         target = self._id2label[self.id(path)]
         
         # cam = self.camera(path)
 
         img = self.loader(path)
-        if self.transform is not None:
-            img = self.transform(img)
+
+        hori_flip = self.MRandom.random() < 0.5
+
+        img = self.transform_resize(img)
+        if hori_flip:
+            img = F.hflip(img)
+        img = self.transform(img)
+
+        path_npz = path[:-3] + 'npz'
+        seg = np.load(path_npz)['data']
+        if hori_flip:
+            seg = np.fliplr(seg)
+            seg = seg.copy()
+        seg = torch.from_numpy(seg)
 
         return img, target, seg
 

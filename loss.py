@@ -130,11 +130,13 @@ class Loss_Segnet(loss._Loss):
         cross_entropy_loss = CrossEntropyLoss()
         triplet_loss = TripletLoss(margin=1.2)
 
-        Triplet_Loss = triplet_loss(outputs[0], labels)
+        Triplet_Loss = [triplet_loss(output, labels) for output in outputs[1]]
+        Triplet_Loss = sum(Triplet_Loss) / len(Triplet_Loss)
 
-        CrossEntropy_Loss = cross_entropy_loss(outputs[1], labels)
+        CrossEntropy_Loss = [cross_entropy_loss(output, labels) for output in outputs[2]]
+        CrossEntropy_Loss = sum(CrossEntropy_Loss) / len(CrossEntropy_Loss)
 
-        loss_sum = 2*Triplet_Loss + CrossEntropy_Loss
+        loss_sum = Triplet_Loss + 2 * CrossEntropy_Loss
 
         if show:
             print('\rtotal loss:%.2f  Triplet_Loss:%.2f  CrossEntropy_Loss:%.2f' % (

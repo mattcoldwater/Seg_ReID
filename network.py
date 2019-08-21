@@ -619,19 +619,23 @@ class Segnet(nn.Module):
 
         feature = nn.Sequential(
             resnet.layer3,
-            resnet.layer4
+            resnet.layer4,
+            nn.AdaptiveAvgPool2d((1, 1))
         )
 
         self.reduction = nn.Sequential(nn.Conv2d(2048, feat, 1), nn.BatchNorm2d(feat), nn.ReLU(inplace=True), nn.AdaptiveAvgPool2d((1, 1)))
         self._init_reduction(self.reduction)
 
         self.tuple_backbone = [0,]* self.num_branches
+        self.tuple_fc = [0,] * self.num_branches
         for i in range(self.num_branches):
             self.tuple_backbone[i] = copy.deepcopy(feature)
+            self.tuple_fc[i] = nn.Linear(2048, num_classes)
         self.tuple_backbone = nn.ModuleList(self.tuple_backbone)
+        self.tuple_fc = nn.ModuleList(self.tuple_fc)
         
-        self.fc2 = nn.Linear(feat*self.num_branches, num_classes)
-        self._initialize_fc(self.fc2)
+        for i in range(self.num_branches):
+            self._initialize_fc(self.tuple_fc[i])
 
         # self.glo_f = nn.Sequential(copy.deepcopy(feature), nn.AdaptiveAvgPool2d((1, 1)))
         # self.fc = nn.Linear(2048, num_classes)
@@ -692,7 +696,7 @@ class Segnet(nn.Module):
         # global_p = self.fc(global_f)
 
         part_f = torch.FloatTensor().to(opt.device)
-        features = [0] * self.num_branches
+        features, predictions = [0] * self.num_branches, [0] * self.num_branches
         part_f = [0] * n
 
         # self.draw.show_pred_seg('./tmp', pred_segs[0], '')
@@ -715,11 +719,13 @@ class Segnet(nn.Module):
                     imgs[i] = no_img
             imgs = torch.stack(imgs, dim=0)
             
-            feature = self.backbone(imgs) #
-            feature = self.tuple_backbone[j](feature)
+            feature = self.backbone(imgs) # 16, 512, 48, 16
+            feature = self.tuple_backbone[j](feature) # 16, 2048, 1, 1
+            prediction = self.tuple_fc[j](feature.squeeze(3).squeeze(2)) # 16, 751
             feature = self.reduction(feature)
-            feature = feature.squeeze(3).squeeze(2) # 16, 128
+            feature = feature.squeeze(3).squeeze(2) # 16, opt.feat
             features[j] = feature
+            predictions[j] = prediction
 
             # self.draw.show('./tmp', imgs[0], j)
 
@@ -728,12 +734,10 @@ class Segnet(nn.Module):
         for i in range(n):
             part_f[i] = torch.cat([features[j][i] for j in range(self.num_branches)], dim=0) # 20, 128 
 
-        part_f = torch.stack(part_f, dim=0) # 16, 2560
-
-        part_p = self.fc2(part_f)
+        part_f = torch.stack(part_f, dim=0) # 16, 1536
 
         # return global_f, part_f, global_p, part_p
-        return part_f, part_p
+        return part_f, features, predictions
 
     def _initialize_fc(self, m):
         nn.init.kaiming_normal_(m.weight, mode='fan_out')
