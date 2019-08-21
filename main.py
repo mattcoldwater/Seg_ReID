@@ -426,7 +426,6 @@ if __name__ == '__main__':
         print('start evaluate')
         if opt.weight != -1:
             main.load(opt.weight)
-        main.val()
         main.evaluate()
 
     if opt.mode == 'roc':
