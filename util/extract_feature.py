@@ -7,10 +7,7 @@ def extract_feature(model, loader):
 
     for (inputs, labels) in loader:
 
-        if opt.model_name == 'Segnet':
-            ff = torch.FloatTensor(inputs.size(0), opt.feat*len(opt.branches)).zero_()
-        else:
-            ff = torch.FloatTensor(inputs.size(0), 2048).zero_()
+        ff = torch.FloatTensor(inputs.size(0), 2048).zero_()
         labels = labels.to(opt.device)
         for i in range(2):
             if i == 1:

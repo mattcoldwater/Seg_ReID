@@ -121,25 +121,3 @@ class Loss_AN(loss._Loss):
                 CrossEntropy_Loss.data.cpu().numpy()),
                     end=' ')
         return loss_sum
-
-class Loss_Segnet(loss._Loss):
-    def __init__(self):
-        super(Loss_Segnet, self).__init__()
-
-    def forward(self, outputs, labels, show=True):
-        cross_entropy_loss = CrossEntropyLoss()
-        triplet_loss = TripletLoss(margin=1.2)
-
-        Triplet_Loss = triplet_loss(outputs[0], labels)
-
-        CrossEntropy_Loss = cross_entropy_loss(outputs[1], labels)
-
-        loss_sum = 2*Triplet_Loss + CrossEntropy_Loss
-
-        if show:
-            print('\rtotal loss:%.2f  Triplet_Loss:%.2f  CrossEntropy_Loss:%.2f' % (
-                loss_sum.data.cpu().numpy(),
-                Triplet_Loss.data.cpu().numpy(),
-                CrossEntropy_Loss.data.cpu().numpy()),
-                    end=' ')
-        return loss_sum

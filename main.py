@@ -33,8 +33,8 @@ from util.extract_feature import extract_feature, extract_feature_SN
 from util.get_optimizer import get_optimizer
 from util.metrics import mean_ap, cmc, re_ranking, mean_ap_, cmc_
 from util.utility import cut_range
-from network import MGN, Resnet, CGN, SN, FPN, AN, Segnet
-from loss import Loss_MGN, Loss_Resnet, Loss_CGN, Loss_SN, Loss_FPN, Loss_AN, Loss_Segnet
+from network import MGN, Resnet, CGN, SN, FPN, AN
+from loss import Loss_MGN, Loss_Resnet, Loss_CGN, Loss_SN, Loss_FPN, Loss_AN
 
 class Main():
     
@@ -400,9 +400,6 @@ if __name__ == '__main__':
     elif opt.model_name == 'AN':
         model = AN()
         loss = Loss_AN()     
-    elif opt.model_name == 'Segnet':
-        model = Segnet()
-        loss = Loss_Segnet()
         
     if opt.mode == 'train':
         main = Main(model, loss, Data())
@@ -415,16 +412,15 @@ if __name__ == '__main__':
             main.train()
             if epoch % 100 == 0 or epoch==1:
                 print('\nstart evaluate')
+                main.save(epoch, opt.weight_path+'/checkpoint_{}.pth.tar'.format(epoch))
                 main.val()
                 main.evaluate()
-                main.save(epoch, opt.weight_path+'/checkpoint_{}.pth.tar'.format(epoch))
 
     if opt.mode == 'evaluate':
         main = Main(model, loss, Data())
         print('start evaluate')
         if opt.weight != -1:
             main.load(opt.weight)
-        main.val()
         main.evaluate()
 
     if opt.mode == 'roc':

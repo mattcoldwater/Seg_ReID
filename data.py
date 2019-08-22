@@ -108,18 +108,14 @@ class Market1501(dataset.Dataset):
 
     def __getitem__(self, index):
         path = self.imgs[index]
-        # path_npz = path.with_suffix('.npz')
-        # seg = np.load(path_npz)['data']
-        seg = torch.from_numpy(seg)
-
         target = self._id2label[self.id(path)]
         # cam = self.camera(path)
-
+        
         img = self.loader(path)
         if self.transform is not None:
             img = self.transform(img)
 
-        return img, target#, seg
+        return img, target
 
     def __len__(self):
         return len(self.imgs)
@@ -189,10 +185,10 @@ class Vivalab(dataset.Dataset):
         path = self.imgs[index]
         target = self._id2label[self.id(path)]
         img = self.loader(path)
-        cam = self.camera(path)
+        # cam = self.camera(path)
         if self.transform is not None:
             img = self.transform(img)
-        return img, target, cam
+        return img, target
 
     def __len__(self):
         return len(self.imgs)
@@ -324,8 +320,8 @@ class Vivalab_pre():
         for path in test_query_imgs:
             path_id = self.id(path) 
             if path_id in id_dict:
-                if len(id_dict[path_id]) < 80:
-                    id_dict[path_id].append(path)
+                # if len(id_dict[path_id]) < 80:
+                id_dict[path_id].append(path)
             else:
                 id_dict[path_id] = [path,]
      
