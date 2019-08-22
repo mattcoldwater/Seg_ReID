@@ -1,5 +1,6 @@
 import torch
 from opt import opt
+import torch.nn.functional as F
 
 def extract_feature(model, loader):
     torch.cuda.empty_cache()
@@ -20,8 +21,9 @@ def extract_feature(model, loader):
             f = outputs[0].data.cpu()
             ff = ff + f
 
-        fnorm = torch.norm(ff, p=2, dim=1, keepdim=True)
-        ff = ff.div(fnorm.expand_as(ff))
+        ff = F.normalize(ff)
+        # fnorm = torch.norm(ff, p=2, dim=1, keepdim=True)
+        # ff = ff.div(fnorm.expand_as(ff))
         features = torch.cat((features, ff), 0)
     return features
 
