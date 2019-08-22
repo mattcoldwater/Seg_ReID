@@ -217,10 +217,10 @@ class Vivalab(dataset.Dataset):
         path = self.imgs[index]
         target = self._id2label[self.id(path)]
         img = self.loader(path)
-        cam = self.camera(path)
+        # cam = self.camera(path)
         if self.transform is not None:
             img = self.transform(img)
-        return img, target, cam
+        return img, target
 
     def __len__(self):
         return len(self.imgs)

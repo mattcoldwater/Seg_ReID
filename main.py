@@ -415,7 +415,7 @@ if __name__ == '__main__':
         for epoch in range(init_epoch + 1, opt.epoch + 1):
             print('\nepoch', epoch)
             main.train()
-            if epoch % 100 == 0 or epoch in [1, 10, 30, 50]:
+            if epoch % 100 == 0 or epoch in [1, 10, 20, 30]:
                 print('\nstart evaluate')
                 main.save(epoch, opt.weight_path+'/checkpoint_{}.pth.tar'.format(epoch))
                 main.val()
