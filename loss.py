@@ -136,7 +136,7 @@ class Loss_Segnet(loss._Loss):
         CrossEntropy_Loss = [cross_entropy_loss(output, labels) for output in outputs[2]]
         CrossEntropy_Loss = sum(CrossEntropy_Loss) / len(CrossEntropy_Loss)
 
-        loss_sum = Triplet_Loss + 2 * CrossEntropy_Loss
+        loss_sum = 2*Triplet_Loss +  CrossEntropy_Loss
 
         if show:
             print('\rtotal loss:%.2f  Triplet_Loss:%.2f  CrossEntropy_Loss:%.2f' % (

@@ -21,7 +21,7 @@ parser.add_argument('--debug', default=False, type=bool, help='debug mode, small
 parser.add_argument('--gpu', default='1', help='the gpu you use')
 parser.add_argument('--start_method', default='spawn', help='mutiprocessing start method')
 parser.add_argument('--feat', default=512, type=int, help='number of features')
-parser.add_argument('--branches', default=[[0,], [1, 2, 4, 13, 3, 11, 5, 6, 7, 10, 14, 15], [9, 12, 16, 17, 8, 18, 19]], type=list, help='seg branches')
+parser.add_argument('--branches', default=[[1, 2, 4, 13, 3, 11, 5, 6, 7, 10, 14, 15], [9, 12, 16, 17, 8, 18, 19]], type=list, help='seg branches')
 """  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
 [0,], [1, 2, 4, 13, 3, 11, 5, 6, 7, 10, 14, 15], [9, 12, 16, 17, 8, 18, 19]
 'Background',  'Hat',          'Hair',      'Glove',     
