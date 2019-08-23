@@ -620,16 +620,16 @@ class Segnet(nn.Module):
         feature = nn.Sequential(
             resnet.layer3,
             resnet.layer4,
-            # nn.AdaptiveAvgPool2d((1, 1))
+            nn.AdaptiveAvgPool2d((1, 1))
         )
 
-        reduction = nn.Sequential(nn.Conv2d(2048, feat, 1), nn.BatchNorm2d(feat), nn.ReLU(inplace=True), nn.AdaptiveAvgPool2d((1, 1)))
-        self._init_reduction(reduction)
+        # reduction = nn.Sequential(nn.Conv2d(2048, feat, 1), nn.BatchNorm2d(feat), nn.ReLU(inplace=True), nn.AdaptiveAvgPool2d((1, 1)))
+        # self._init_reduction(reduction)
 
         self.tuple_backbone = [0,]* self.num_branches
         self.tuple_fc = [0,] * self.num_branches
         for i in range(self.num_branches):
-            self.tuple_backbone[i] = nn.Sequential(copy.deepcopy(feature), copy.deepcopy(reduction))
+            self.tuple_backbone[i] = copy.deepcopy(feature) #nn.Sequential(copy.deepcopy(feature), copy.deepcopy(reduction))
             self.tuple_fc[i] = nn.Linear(feat, num_classes)
         self.tuple_backbone = nn.ModuleList(self.tuple_backbone)
         self.tuple_fc = nn.ModuleList(self.tuple_fc)
