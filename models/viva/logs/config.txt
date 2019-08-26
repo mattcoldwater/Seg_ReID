@@ -1,0 +1,4 @@
+mask_resnet 600 97.867
+bb_resnet 500
+bb 500
+mask 400 98.566
