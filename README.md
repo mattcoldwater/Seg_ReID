@@ -1,5 +1,5 @@
 # Seg_ReID 
-
+All weights are [Here](https://drive.google.com/open?id=1RP2SYc1339XxS_aM3GkPg4cbvGcVpvJr).
 
 ## Market1501
 | Model                       | mAP |CMC-1 | CMC-3 | CMC-5 | CMC-10 |
