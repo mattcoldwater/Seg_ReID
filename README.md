@@ -1,2 +1,2 @@
 # Seg_ReID 
-All weights are [Here](https://drive.google.com/drive/folders/1yBvQDiozWtPwAw0h2S8TidNHz1VPnimd?usp=sharing).
+All weights are [Here](https://drive.google.com/open?id=1RP2SYc1339XxS_aM3GkPg4cbvGcVpvJr).
