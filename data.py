@@ -39,7 +39,7 @@ class Data():
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
 
-        if "viva" in opt.data_path:
+        if "viva_dataset" in opt.data_path:
             pre_viva = Vivalab_pre()
             # pre_viva.check_tids(opt.data_path)
             train_imgs, val_imgs, test_imgs, query_imgs, self.tid_dict, self.test_query_imgs = pre_viva.get_all(opt.data_path)
@@ -48,11 +48,19 @@ class Data():
             self.testset = Vivalab(test_transform, test_imgs, 'test')
             self.queryset = Vivalab(test_transform, query_imgs, 'query')
             self.valset = Vivalab(test_transform, val_imgs, 'val')
-        else:
+        elif "market" in opt.data_path:
             self.trainset = Market1501(train_transform, 'train', opt.data_path)
             self.testset = Market1501(test_transform, 'test', opt.data_path)
             self.queryset = Market1501(test_transform, 'query', opt.data_path)
             self.valset = Market1501(test_transform, 'val', opt.data_path)
+        else:
+            pre_test = Vivalab_Test_pre()
+            pre_test.check_tids(opt.data_path)
+            test_imgs, query_imgs = pre_test.get_all(opt.data_path)
+            self.testset = Vivalab(test_transform, test_imgs, 'test')
+            self.queryset = Vivalab(test_transform, query_imgs, 'query')
+            self.trainset = None
+            self.valset = None
 
         pin_memory = opt.device != 'cpu'
         self.train_loader = dataloader.DataLoader(self.trainset,
@@ -69,9 +77,6 @@ class Data():
                                                 pin_memory = pin_memory)
         self.test_loader = dataloader.DataLoader(self.testset, batch_size=opt.batchtest, num_workers=opt.num_workers, pin_memory = pin_memory)
         self.query_loader = dataloader.DataLoader(self.queryset, batch_size=opt.batchquery, num_workers=opt.num_workers, pin_memory = pin_memory)
-
-        if opt.mode == 'vis':
-            self.query_image = test_transform(default_loader(opt.query_image))
 
 class Market1501(dataset.Dataset):
     def __init__(self, transform, dtype, data_path):
@@ -164,6 +169,78 @@ class Market1501(dataset.Dataset):
         return sorted([os.path.join(root, f)
                        for root, _, files in os.walk(directory) for f in files
                        if re.match(r'([\w]+\.(?:' + ext + '))', f)])
+
+class Vivalab_Test_pre():
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def list_pictures(path):
+        paths = Path(path).glob('**/*.png')
+        return paths   
+
+    @staticmethod
+    def id(file_path):
+        """
+        :param file_path: unix style file path
+        :return: person id
+        """
+        return int(file_path.parts[-3])
+
+    @staticmethod
+    def tid(file_path):
+        """
+        :param file_path: unix style file path
+        :return: tracklet id
+        """
+        return int(file_path.parts[-2])
+
+    @staticmethod
+    def check_tids(datadir):
+        data_path = datadir
+        all_ids = os.listdir(data_path)     
+        all_tids = []
+        for _ in all_ids:
+            all_tids += os.listdir(data_path+'/'+_)
+        assert len(all_tids) == len(set(all_tids))
+
+    def get_all(self, datadir):
+        data_path = datadir
+        all_ids = os.listdir(data_path)
+        all_ids = [int(_) for _ in all_ids]
+        imgs = [path for path in self.list_pictures(data_path)]
+        
+        VRandom = random.Random(opt.seed)
+        VRandom.shuffle(all_ids)
+        VRandom.shuffle(imgs)
+
+        _len = len(all_ids)
+        print("num of categories", _len)
+
+        ## test query
+        test_query_ids = all_ids
+        test_query_imgs = [path for path in imgs if self.id(path) != -1 and self.id(path) in test_query_ids]
+
+        ## id dict
+        id_dict = {}
+        for path in test_query_imgs:
+            path_id = self.id(path) 
+            if path_id in id_dict:
+                # if len(id_dict[path_id]) < 80:
+                id_dict[path_id].append(path)
+            else:
+                id_dict[path_id] = [path,]
+     
+        ## test & query
+        test_imgs, query_imgs  = [], []
+        for path_id in list(id_dict.keys()):
+            paths = id_dict[path_id]
+            # VRandom.shuffle(paths) have been shuffled before for the whole dataset
+            _n = round(len(paths) * 0.1419)
+            query_imgs += paths[:_n] # 2166
+            test_imgs += paths[_n:]  # 13555
+
+        return test_imgs, query_imgs
 
 class Vivalab(dataset.Dataset):
     def __init__(self, transform, imgs, dtype=''):

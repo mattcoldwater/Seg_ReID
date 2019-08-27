@@ -425,18 +425,17 @@ if __name__ == '__main__':
     if opt.mode == 'evaluate':
         main = Main(model, loss, Data())
         print('start evaluate')
-        if opt.weight != -1:
-            main.load(opt.weight)
+        if opt.resume: main.load()
         main.evaluate()
 
     if opt.mode == 'roc':
         main = Main(model, loss, Data())
         print('ROC curve')
-        main.load(opt.weight)
+        main.load()
         main.roc()
 
     if opt.mode == 'simi':
         main = Main(model, loss)
         print('Similarity scores')
-        main.load(opt.weight)
+        main.load()
         main.simi()
