@@ -6,6 +6,7 @@ All weights are [Here](https://drive.google.com/open?id=1RP2SYc1339XxS_aM3GkPg4c
 | :-------------------------- | ----------: | ----------: | ----------: | ----------: | ----------: | 
 | Resnet(crossentropy)|   66.47 | 84.38 | 91.38 | 94.03 | 96.11
 | Resnet(triplet+crossentropy)|   78.08  | 90.41 | 94.86 | 96.17 | 97.45 |
+| CGN(the paper's method)     | 69.28 | 86.13 | 92.76 | 94.80 | 96.85  |
 
 
 ## Vivalab's dataset
@@ -15,3 +16,4 @@ All weights are [Here](https://drive.google.com/open?id=1RP2SYc1339XxS_aM3GkPg4c
 | CGN(the paper's method)(mask)|  67.14 | 84.30|  88.77|  90.29|  91.87
 | MGN(bouding box)            | 81.24 | 89.92 | 92.58 | 93.23 | 94.96 |
 | MGN(mask)                   | 75.04 | 86.85|  89.94|  91.05|  93.04 |
+

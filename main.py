@@ -160,6 +160,8 @@ class Main():
               
         torch.cuda.empty_cache()
 
+        return r, m_ap
+
     def evaluate_SN(self):    
         self.topk = 20
         self.model.eval()
@@ -362,22 +364,24 @@ class Main():
         with open('logs/roc_{}_{}.json'.format(opt.model_name, opt.trans), 'w', encoding='utf-8') as f:
             json.dump(roc_dict, f)
 
-    def save(self, epoch, filename):
+    def save(self, r, m_ap, epoch, filename):
         torch.save({
             'epoch': epoch,
+            'rank': r,
+            'map': m_ap,
             'state_dict': self.model.state_dict(),
             'optimizer': self.optimizer.state_dict(),
             'scheduler': self.scheduler.state_dict()
         }, filename)
 
-    def load(self, filename):
-        filename = opt.weight_path + '/checkpoint_{}.pth.tar'.format(filename)
+    def load(self):
+        filename = opt.weight_path + '/best_model.pth.tar'
         checkpoint = torch.load(filename, map_location=torch.device(opt.device))
         self.model.load_state_dict(checkpoint['state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer'])
         self.scheduler = lr_scheduler.MultiStepLR(self.optimizer, milestones=opt.lr_scheduler, gamma=0.1, last_epoch=checkpoint['epoch'])
-        print("Loading from epoch:", checkpoint['epoch'], 'schedular:', self.scheduler.last_epoch)
-        return checkpoint['epoch']
+        print("Loading from epoch:", checkpoint['epoch'], 'schedular:', self.scheduler.last_epoch, 'map:', checkpoint['map'], 'rank1:', checkpoint['rank'][0])
+        return checkpoint['epoch'], checkpoint['rank'], checkpoint['map']
 
 if __name__ == '__main__':  
     mp.set_start_method(opt.start_method, True)   
@@ -404,7 +408,7 @@ if __name__ == '__main__':
     if opt.mode == 'train':
         main = Main(model, loss, Data())
 
-        init_epoch = main.load(opt.weight) if opt.weight != -1 else 0
+        init_epoch, rankings, best_map = main.load() if opt.resume else 0, [], 0
         os.makedirs(opt.weight_path, exist_ok=True)
 
         for epoch in range(init_epoch + 1, opt.epoch + 1):
@@ -412,9 +416,11 @@ if __name__ == '__main__':
             main.train()
             if epoch % 100 == 0 or epoch==1:
                 print('\nstart evaluate')
-                main.save(epoch, opt.weight_path+'/checkpoint_{}.pth.tar'.format(epoch))
                 main.val()
-                main.evaluate()
+                r, m_ap = main.evaluate()
+                if m_ap > best_map:
+                    best_map = m_ap
+                    main.save(epoch, r, m_ap, opt.weight_path+'/best_model.pth.tar')
 
     if opt.mode == 'evaluate':
         main = Main(model, loss, Data())
