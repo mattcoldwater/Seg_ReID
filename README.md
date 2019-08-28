@@ -6,8 +6,7 @@ All weights are [Here](https://drive.google.com/open?id=1RP2SYc1339XxS_aM3GkPg4c
 | :-------------------------- | ----------: | ----------: | ----------: | ----------: | ----------: | 
 | Resnet(crossentropy)|   66.47 | 84.38 | 91.38 | 94.03 | 96.11
 | Resnet(triplet+crossentropy)|   78.08  | 90.41 | 94.86 | 96.17 | 97.45 |
-| CGN(the paper's method)     | 69.28 | 86.13 | 92.76 | 94.80 | 96.85  |
-
+| CGN(the paper's method)     | 72.11 | 87.50 | 93.65 | 95.37 | 96.94  |
 
 ## Vivalab's dataset
 | Model                       | mAP |CMC-1 | CMC-3 | CMC-5 | CMC-10 |
